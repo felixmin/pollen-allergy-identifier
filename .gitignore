@@ -6,6 +6,8 @@ yarn-debug.log*
 yarn-error.log*
 firebase-debug.log*
 firebase-debug.*.log*
+ui-debug.log
+firestore-debug.log
 
 # Firebase cache
 .firebase/
@@ -166,3 +168,7 @@ coverage/
 
 # Mason
 .mason/
+
+# Firebase local environment files
+.env.local
+.secret.local

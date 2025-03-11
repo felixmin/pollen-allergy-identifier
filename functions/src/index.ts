@@ -14,6 +14,7 @@ import axios from "axios";
 import * as dotenv from 'dotenv';
 import * as path from 'path';
 import { CallableRequest } from "firebase-functions/v2/https";
+import { defineSecret } from "firebase-functions/params";
 
 // Initialize dotenv
 dotenv.config({ path: path.resolve(__dirname, '.env') });
@@ -32,6 +33,9 @@ try {
     logger.info("Firebase Admin SDK was already initialized");
   }
 }
+
+// Define the secret
+const pollenApiKey = defineSecret('POLLEN_API_KEY');
 
 // Helper function to validate feedback data
 function validateFeedbackData(data: any): { validatedData: any | null; error: string | null } {
@@ -76,7 +80,7 @@ function validateFeedbackData(data: any): { validatedData: any | null; error: st
 
 // Helper function to get pollen data from Google Pollen API
 async function getPollenData(lat: number, lng: number): Promise<any[]> {
-  const apiKey = "AIzaSyDAx6YC-zeiHA-ax7sOHu3e_kHR4Do4u0k";
+  const apiKey = pollenApiKey.value();
   if (!apiKey) {
     logger.warn("POLLEN_API_KEY not set in environment");
     // Return empty array but don't fail the function
@@ -331,6 +335,7 @@ export const onRequestExample = functions.https.onCall(
 
 // Submit feedback function - CONVERTED TO CALLABLE
 export const submitFeedback = functions.https.onCall(
+  { secrets: [pollenApiKey] },
   async (request: CallableRequest<any>) => {
     const data = request.data;
     const context = request.auth;
