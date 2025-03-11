@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "924105642469",
+    "project_id": "allergy-ident-dev",
+    "storage_bucket": "allergy-ident-dev.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:924105642469:android:91398bd22a357f8ccc9f0c",
+        "android_client_info": {
+          "package_name": "com.example.flutter_allergy_identifier"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB1BjWNgiXYMsyNIvbhZv0lWX6Iqr_yHaw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

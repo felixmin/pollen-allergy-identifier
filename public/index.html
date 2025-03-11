@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <!--
+    If you are serving your web app in a path other than the root, change the
+    href value below to reflect the base path you are serving from.
+
+    The path provided below has to start and end with a slash "/" in order for
+    it to work correctly.
+
+    For more details:
+    * https://developer.mozilla.org/en-US/docs/Web/HTML/Element/base
+
+    This is a placeholder for base href that will be replaced by the value of
+    the `--base-href` argument provided to `flutter build`.
+  -->
+  <base href="/">
+
+  <meta charset="UTF-8">
+  <meta content="IE=Edge" http-equiv="X-UA-Compatible">
+  <meta name="description" content="Track your symptoms and identify potential allergies">
+
+  <!-- Geolocation permission meta tags -->
+  <meta name="geo.position.lat" content="auto">
+  <meta name="geo.position.long" content="auto">
+  <meta name="geo.API.googleMaps.key" content="">
+  <meta name="geo.API.bingMaps.key" content="">
+  <meta name="geo.preferIPSources" content="true">
+  
+  <!-- Explicitly state we need geolocation permissions -->
+  <meta name="permissions-policy" content="geolocation=self">
+
+  <!-- iOS meta tags & icons -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="apple-mobile-web-app-title" content="Allergy Identifier">
+  <link rel="apple-touch-icon" href="icons/Icon-192.png">
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" href="favicon.png"/>
+
+  <title>Allergy Identifier</title>
+  <link rel="manifest" href="manifest.json">
+
+  <meta name="theme-color" content="#4CAF50">
+</head>
+<body>
+  
+  <!-- Enhanced geolocation debugging -->
+  <script>
+    // A more robust geolocation solution using a module pattern
+    window.GeoLocationService = (function() {
+      // Private state
+      let _latitude = null;
+      let _longitude = null;
+      let _accuracy = null;
+      let _status = "unknown"; // "unknown", "loading", "success", "error"
+      let _error = null;
+      let _lastUpdated = null;
+      
+      // Log if geolocation is available
+      console.log('GEO_LOG: ========= BROWSER GEOLOCATION CHECK =========');
+      if ('geolocation' in navigator) {
+        console.log('GEO_LOG: Geolocation API is supported in this browser');
+      } else {
+        console.log('GEO_LOG: ❌ Geolocation API is NOT supported in this browser');
+      }
+
+      // Private function to update the location
+      function _updatePosition() {
+        console.log('GEO_LOG: Updating position...');
+        
+        // Update status
+        _status = "loading";
+        
+        if (!navigator.geolocation) {
+          console.error('GEO_LOG: ❌ Geolocation API not available');
+          _status = "error";
+          _error = "Geolocation API not available";
+          return Promise.reject(new Error(_error));
+        }
+        
+        return new Promise((resolve, reject) => {
+          // Call the browser's geolocation API
+          navigator.geolocation.getCurrentPosition(
+            // Success callback
+            function(position) {
+              console.log('GEO_LOG: ✅ Position successful:', 
+                JSON.stringify({
+                  latitude: position.coords.latitude,
+                  longitude: position.coords.longitude
+                })
+              );
+              
+              // Update private state
+              _latitude = position.coords.latitude;
+              _longitude = position.coords.longitude;
+              _accuracy = position.coords.accuracy;
+              _status = "success";
+              _error = null;
+              _lastUpdated = new Date();
+              
+              console.log('GEO_LOG: Updated geolocation state:', 
+                JSON.stringify({
+                  latitude: _latitude,
+                  longitude: _longitude,
+                  accuracy: _accuracy,
+                  status: _status,
+                  lastUpdated: _lastUpdated
+                })
+              );
+              
+              // For backward compatibility - also set global variables
+              window.geoLatitude = _latitude;
+              window.geoLongitude = _longitude;
+              window.geoAccuracy = _accuracy;
+              window.geoStatus = _status;
+              window.geoError = _error;
+              
+              resolve({
+                latitude: _latitude,
+                longitude: _longitude,
+                accuracy: _accuracy
+              });
+            },
+            // Error callback
+            function(error) {
+              console.error('GEO_LOG: ❌ Position error:', error.message);
+              
+              // Update error state
+              _status = "error";
+              _error = error.message || "Unknown geolocation error";
+              
+              // For backward compatibility
+              window.geoStatus = _status;
+              window.geoError = _error;
+              
+              reject(new Error(_error));
+            },
+            // Options
+            {
+              enableHighAccuracy: true,
+              timeout: 10000,
+              maximumAge: 0
+            }
+          );
+        });
+      }
+      
+      // Call immediately to get position
+      _updatePosition().catch(error => {
+        console.error('GEO_LOG: Initial geolocation request failed:', error.message);
+      });
+      
+      // Public API
+      return {
+        // Get the current status of geolocation
+        getStatus: function() {
+          return _status;
+        },
+        
+        // Get the current error message (if any)
+        getError: function() {
+          return _error;
+        },
+        
+        // Get the current position (if available)
+        getPosition: function() {
+          if (_status !== "success") {
+            return null;
+          }
+          
+          return {
+            latitude: _latitude,
+            longitude: _longitude,
+            accuracy: _accuracy,
+            lastUpdated: _lastUpdated
+          };
+        },
+        
+        // Update the position (returns a promise)
+        updatePosition: function() {
+          return _updatePosition();
+        },
+        
+        // Check if position is available
+        hasPosition: function() {
+          return _status === "success" && _latitude !== null && _longitude !== null;
+        },
+        
+        // Get a basic position object suitable for Flutter
+        getBasicPosition: function() {
+          return {
+            latitude: _latitude,
+            longitude: _longitude,
+            accuracy: _accuracy
+          };
+        }
+      };
+    })();
+  </script>
+
+  <!-- Firebase scripts for web -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-messaging.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-functions.js"></script>
+
+  <script>
+    // Your web app's Firebase configuration
+    // This information should match the firebase_options.dart configuration
+    const firebaseConfig = {
+      apiKey: "YOUR_API_KEY",
+      authDomain: "YOUR_AUTH_DOMAIN",
+      projectId: "YOUR_PROJECT_ID",
+      storageBucket: "YOUR_STORAGE_BUCKET",
+      messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+      appId: "YOUR_APP_ID"
+    };
+    
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
+
+    // Request notification permission for web
+    if ('Notification' in window) {
+      if (Notification.permission !== 'granted' && Notification.permission !== 'denied') {
+        Notification.requestPermission().then(function(permission) {
+          if (permission === 'granted') {
+            console.log('Notification permission granted.');
+          }
+        });
+      }
+    }
+  </script>
+
+  <!-- Use Flutter's recommended bootstrapping approach -->
+  <script src="flutter_bootstrap.js" async></script>
+</body>
+</html>

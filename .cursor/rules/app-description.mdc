@@ -1,0 +1,298 @@
+---
+description: 
+globs: 
+---
+Below is an improved technical specification that reflects your design decisions and priorities. This document is geared toward quickly developing an early prototype while keeping the design modular and scalable for future enhancements.
+
+---
+
+# Technical Specification: Hay Fever Diagnosis Flutter App
+
+## 1. Overview
+
+This document details the architecture and design for a Flutter application aimed at helping users identify the type of hay fever they experience. Users provide daily feedback (with their current GPS location) on how they feel. When feedback is submitted, the app retrieves pollen data for that location (via a Google API), stores both datasets, and later runs a regression analysis to correlate pollen levels with user symptoms. The prototype will initially target iOS, with Android and Web planned for later.
+
+The primary goals are to:
+- Get an early prototype out quickly.
+- Use a modular, scalable design to allow future additions (e.g., automated testing, advanced analytics, additional platforms).
+- Separate development (dev) and production (prod) environments with distinct Firebase projects.
+- Keep the tech stack and infrastructure as simple as possible for rapid prototyping.
+
+---
+
+## 2. Tech Stack
+
+### Frontend (Flutter App)
+- **Framework:** Flutter  
+- **State Management:** Provider (for simplicity in the initial prototype)  
+- **Networking:** `http` package for API calls  
+- **Authentication:** Firebase Authentication (supporting Google, Apple, and Email/Password)  
+- **Push Notifications:** Firebase Cloud Messaging (FCM)  
+- **Deployment:** Fastlane for iOS (TestFlight for testing, App Store for production)  
+- **Modularity:** Ensure clear separation between UI, state management, networking, and service layers for future refactoring and testing
+
+### Backend (Firebase Services)
+- **Cloud Functions (Node.js/TypeScript):**  
+  - Process regression analysis requests  
+  - Secure endpoint triggered by authenticated requests
+- **Firestore (NoSQL Database):**  
+  - Two primary collections (tables) for flexibility:
+    - **Users Collection:** Stores user profiles and preferences.
+    - **Feedback Collection:** Stores user feedback along with GPS-based pollen data.
+- **Firebase Authentication:** Manages user sign-in and access control  
+- **Firebase Cloud Messaging (FCM):** Sends daily push notifications (default scheduled in the afternoon based on user’s timezone; users can adjust their notification time)
+- **Firebase Hosting:** Planned for the web dashboard in later releases
+
+### Infrastructure as Code (Terraform)
+- **Firebase Setup:** Manage Firebase resources (Authentication, Firestore rules, Cloud Functions, FCM settings) via Terraform.  
+- **Environment Separation:** Create separate configurations for dev and prod, ensuring each environment has its own Firebase project and appropriate secrets management.
+
+---
+
+## 3. App Features & Architecture
+
+### 3.1 Authentication & User Management
+- **Firebase Authentication:**  
+  - Supports OAuth (Google, Apple) and Email/Password sign-in.
+  - Each authenticated user receives a unique document in the **Users Collection** containing:
+    ```json
+    {
+      "uid": "uid123",
+      "email": "user@example.com",
+      "notificationTime": "default_afternoon_time_in_user_timezone",
+      "createdAt": "timestamp"
+    }
+    ```
+- **Access Control:**  
+  - Firestore Security Rules ensure that users can only access their own data.
+
+### 3.2 Feedback & Pollen Data Collection
+- **User Feedback Flow:**  
+  1. **Feedback Submission:**  
+     - The user submits daily feedback, which triggers:
+       - A GPS location request (since location isn’t always available).
+       - An immediate API call to the Google pollen API using the current GPS coordinates.
+  2. **Data Storage:**  
+     - Combine the user’s feedback and the retrieved pollen data in a new document within the **Feedback Collection**.  
+       ```json
+       {
+         "userId": "uid123",
+         "timestamp": "feedback_submission_time",
+         "feedback": "user_feeling_score or category",
+         "location": {
+           "lat": 00.0000,
+           "lng": 00.0000
+         },
+         "pollenData": {
+           "pollenCount": 42,
+           "pollenType": "grass, tree, etc."
+         }
+       }
+       ```
+
+### 3.3 Push Notifications
+- **Default Scheduling:**  
+  - Send daily notifications in the afternoon (default based on the user’s local timezone).  
+  - Users can modify their notification time via the app settings.
+- **FCM Integration:**  
+  - Use FCM to schedule notifications per user profile.
+  - Adjust scheduling based on timezone data stored in the user’s profile.
+
+### 3.4 Backend Processing (Cloud Functions)
+#### Regression Analysis Function
+- **Trigger:**  
+  - HTTP endpoint secured by Firebase Authentication.
+  - Invoked when the user opens the analysis view.
+- **Process Flow:**  
+  1. **Authentication:** Verify Firebase ID token.
+  2. **Data Retrieval:** Query the **Feedback Collection** for the authenticated user.
+  3. **Data Validation:** Ensure sufficient data points for meaningful regression.
+  4. **Regression Analysis:**  
+     - Use the `regression-js` library to perform a linear regression on the collected dataset.
+  5. **Result Storage & Response:**  
+     - Store the regression result in a separate document (or collection) if needed.
+     - Return the regression results (equation and r² value) to the client.
+- **Sample TypeScript Implementation:**
+  ```typescript
+  import * as functions from "firebase-functions";
+  import * as admin from "firebase-admin";
+  import regression from "regression";
+
+  admin.initializeApp();
+
+  export const runRegression = functions.https.onRequest(async (req, res) => {
+      try {
+          const idToken = req.headers.authorization;
+          if (!idToken) return res.status(401).send("Unauthorized");
+
+          const decodedToken = await admin.auth().verifyIdToken(idToken);
+          const userId = decodedToken.uid;
+
+          const snapshot = await admin.firestore()
+              .collection("feedback")
+              .where("userId", "==", userId)
+              .get();
+
+          if (snapshot.empty) return res.status(404).send("No data available for regression.");
+
+          const data: [number, number][] = snapshot.docs.map(doc => {
+              // Assume feedback is a numeric value and pollenCount is numeric
+              return [doc.data().pollenData.pollenCount, doc.data().feedback];
+          });
+
+          if (data.length < 3) {
+              return res.status(400).send("Insufficient data points for regression analysis.");
+          }
+
+          const result = regression.linear(data);
+
+          // Optionally store the result
+          await admin.firestore().collection("results").doc(userId).set({
+              equation: result.equation,
+              r2: result.r2,
+              timestamp: admin.firestore.FieldValue.serverTimestamp()
+          });
+
+          return res.json({
+              message: "Regression analysis completed successfully.",
+              equation: result.equation,
+              r2: result.r2
+          });
+      } catch (error) {
+          console.error("Regression analysis error:", error);
+          return res.status(500).send("Internal Server Error");
+      }
+  });
+  ```
+
+---
+
+## 4. CI/CD Pipeline & Deployment
+
+### 4.1 Flutter App Deployment (Fastlane & GitHub Actions)
+- **Branch Strategy:**  
+  - **Dev Branch:** Deploy to Firebase App Distribution for testing.
+  - **Main Branch:** Deploy to TestFlight and eventually the App Store.
+- **Example GitHub Actions Workflow:**
+  ```yaml
+  on:
+    push:
+      branches:
+        - main
+        - dev
+      paths:
+        - 'app/**'
+
+  jobs:
+    build_flutter_app:
+      runs-on: macos-latest
+      steps:
+        - name: Checkout Repository
+          uses: actions/checkout@v3
+        - name: Setup Flutter
+          uses: subosito/flutter-action@v2
+          with:
+            flutter-version: 3.x
+        - name: Install Dependencies
+          run: flutter pub get
+        - name: Build & Deploy
+          run: |
+            flutter build ipa --flavor dev
+            fastlane pilot upload --app_identifier com.hayfever.app.dev
+  ```
+
+### 4.2 Firebase Cloud Functions Deployment
+- **Trigger:**  
+  - Deploy on push to `main` or `dev` when changes occur under `/firebase/functions/`.
+- **Example GitHub Actions Workflow:**
+  ```yaml
+  on:
+    push:
+      branches:
+        - main
+        - dev
+      paths:
+        - 'firebase/functions/**'
+
+  jobs:
+    deploy_firebase:
+      runs-on: ubuntu-latest
+      steps:
+        - name: Checkout Repository
+          uses: actions/checkout@v3
+        - name: Install Firebase CLI
+          run: npm install -g firebase-tools
+        - name: Deploy Firebase Functions
+          run: firebase deploy --only functions
+  ```
+
+### 4.3 Environment Management
+- **Separate Environments:**  
+  - Use different Firebase projects for development and production.
+  - Manage environment-specific configurations using environment variables and separate Terraform configurations.
+  - Clearly document Firebase project IDs and secrets in a secure manner.
+
+---
+
+## 5. Infrastructure as Code (Terraform)
+
+- **Firebase Resources:**  
+  - Use Terraform to manage Firebase Authentication settings, Firestore rules, Cloud Functions, and FCM configurations.
+  - Confirm that Terraform provides full feature parity for your Firebase resources. For any limitations, document manual steps as part of the deployment guide.
+- **Configuration Example:**  
+  - Define resources such as Firestore collections, indexes, and security rules in Terraform configuration files.
+  - Use separate workspaces or directories for dev and prod environments.
+
+---
+
+## 6. Additional Design Considerations
+
+### 6.1 Modularity & Scalability
+- **Flutter App:**  
+  - Structure the project with clear separation of concerns (e.g., separate folders for models, providers, services, and UI widgets).
+  - Keep networking and business logic in dedicated service classes to simplify future testing and refactoring.
+- **Backend:**  
+  - Cloud Functions should be organized by feature (e.g., regression, notifications) to allow independent updates.
+- **Database Schema:**  
+  - Two primary collections (Users and Feedback) provide flexibility. This separation allows for easier queries, scalability, and future feature additions (e.g., historical analysis, personalized recommendations).
+
+### 6.2 Rapid Prototype with Iterative Improvements
+- **Initial Release:**  
+  - Focus on core functionality (user feedback with GPS-triggered pollen data retrieval, basic regression analysis, and daily notifications).
+  - Defer extensive testing and advanced analytics until after the early prototype is validated.
+- **Future Enhancements:**  
+  - Integrate automated testing (unit, integration, and UI tests).
+  - Expand the regression analysis to support more complex models if required.
+  - Add Firebase Analytics and external monitoring for improved insights and debugging.
+
+### 6.3 Terraform for Firebase
+- **Assessment:**  
+  - Terraform should be sufficient for managing Firebase resources as long as you verify that all needed Firebase configurations (Authentication, Firestore, Cloud Functions, and FCM) are supported. For any features not fully supported, consider supplementing with manual configurations documented in your deployment guide.
+
+---
+
+## 7. Open Questions & Next Steps
+
+1. **GPS & Pollen API Integration:**  
+   - Ensure that the API call for pollen data is optimized and can handle scenarios where GPS might not be immediately available.
+2. **Notification Timing:**  
+   - Finalize the default notification time and verify time zone handling on both the client and server.
+3. **Regression Analysis Data Requirements:**  
+   - Determine the minimum number of data points required for meaningful regression analysis.
+4. **Post-Prototype Enhancements:**  
+   - Plan for the integration of automated testing and advanced logging/monitoring tools once the prototype is stable.
+
+---
+
+## 8. Summary
+
+This specification outlines a modular, scalable design for an early prototype of the hay fever diagnosis app:
+- **Frontend:** Flutter with Provider for state management, Firebase Authentication, FCM for daily notifications (default in the afternoon with timezone support).
+- **Backend:** Firebase services with Firestore split into Users and Feedback collections, Cloud Functions for regression analysis triggered on-demand.
+- **CI/CD & Infrastructure:** GitHub Actions for streamlined deployments, Terraform for Firebase resource management, and separate dev/prod environments.
+
+This design allows rapid prototyping while providing a clear path to incremental improvements, including testing and advanced analytics, as the app matures.
+
+--- 
+
+This document should serve as a comprehensive guide for your development team, balancing simplicity for a quick prototype with a modular design that supports future scalability and feature expansion.

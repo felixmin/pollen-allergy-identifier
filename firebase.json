@@ -1,0 +1,101 @@
+{
+  "firestore": {
+    "rules": "firestore.rules",
+    "indexes": "firestore.indexes.json"
+  },
+  "functions": [
+    {
+      "source": "functions",
+      "codebase": "default",
+      "ignore": [
+        "node_modules",
+        ".git",
+        "firebase-debug.log",
+        "firebase-debug.*.log",
+        "*.local"
+      ],
+      "predeploy": [
+        "npm --prefix \"$RESOURCE_DIR\" run build"
+      ]
+    }
+  ],
+  "flutter": {
+    "platforms": {
+        "android": {
+            "default": {
+                "projectId": "allergy-ident-dev",
+                "appId": "1:924105642469:android:91398bd22a357f8ccc9f0c",
+                "fileOutput": "android/app/google-services.json"
+            }
+        },
+        "ios": {
+            "default": {
+                "projectId": "allergy-ident-dev",
+                "appId": "1:924105642469:ios:94647ae2471054b3cc9f0c",
+                "uploadDebugSymbols": false,
+                "fileOutput": "ios/Runner/GoogleService-Info.plist"
+            }
+        },
+        "dart": {
+            "lib/firebase_options.dart": {
+                "projectId": "allergy-ident-dev",
+                "configurations": {
+                    "android": "1:924105642469:android:91398bd22a357f8ccc9f0c",
+                    "ios": "1:924105642469:ios:94647ae2471054b3cc9f0c",
+                    "web": "1:924105642469:web:5a88aa89910079bacc9f0c"
+                }
+            }
+        }
+    }
+  },
+  "hosting": {
+    "public": "build/web",
+    "ignore": [
+        "firebase.json",
+        "**/.*",
+        "**/node_modules/**"
+    ],
+    "rewrites": [
+        {
+            "source": "**",
+            "destination": "/index.html"
+        }
+    ],
+    "headers": [
+        {
+            "source": "**",
+            "headers": [
+                {
+                    "key": "Feature-Policy",
+                    "value": "geolocation 'self'"
+                },
+                {
+                    "key": "Permissions-Policy",
+                    "value": "geolocation=(self)"
+                }
+            ]
+        }
+    ],
+    "predeploy": [
+      "flutter build web --release"
+    ]
+  },
+  "emulators": {
+    "auth": {
+      "port": 9099
+    },
+    "functions": {
+      "port": 5001
+    },
+    "firestore": {
+      "port": 8080
+    },
+    "hosting": {
+      "port": 5002
+    },
+    "ui": {
+      "enabled": true
+    },
+    "singleProjectMode": true
+  }
+}
