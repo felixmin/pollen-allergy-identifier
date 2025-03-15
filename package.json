@@ -1,4 +1,21 @@
 {
+  "name": "allergy_identifier",
+  "version": "1.0.0",
+  "description": "Allergy Identifier Flutter app with environment switching",
+  "scripts": {
+    "switch:dev": "bash ./scripts/switch_env.sh dev",
+    "switch:prod": "bash ./scripts/switch_env.sh prod",
+    "dev": "bash ./scripts/switch_env.sh dev && flutter run --flavor dev -t lib/main_dev.dart",
+    "prod": "bash ./scripts/switch_env.sh prod && flutter run --flavor prod -t lib/main_prod.dart",
+    "chrome:dev": "bash ./scripts/switch_env.sh dev && flutter run -d chrome -t lib/main_dev.dart",
+    "chrome:prod": "bash ./scripts/switch_env.sh prod && flutter run -d chrome -t lib/main_prod.dart",
+    "build:web:dev": "bash ./scripts/switch_env.sh dev && flutter build web --release -t lib/main_dev.dart",
+    "build:web:prod": "bash ./scripts/switch_env.sh prod && flutter build web --release -t lib/main_prod.dart",
+    "build:apk:dev": "bash ./scripts/switch_env.sh dev && flutter build apk --release --flavor dev -t lib/main_dev.dart",
+    "build:apk:prod": "bash ./scripts/switch_env.sh prod && flutter build apk --release --flavor prod -t lib/main_prod.dart",
+    "build:ios:dev": "bash ./scripts/switch_env.sh dev && flutter build ios --release --flavor dev -t lib/main_dev.dart",
+    "build:ios:prod": "bash ./scripts/switch_env.sh prod && flutter build ios --release --flavor prod -t lib/main_prod.dart"
+  },
   "dependencies": {
     "axios": "^1.8.2"
   }

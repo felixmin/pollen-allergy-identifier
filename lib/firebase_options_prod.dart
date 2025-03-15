@@ -4,8 +4,8 @@ import 'package:firebase_core/firebase_core.dart' show FirebaseOptions;
 import 'package:flutter/foundation.dart'
     show defaultTargetPlatform, kIsWeb, TargetPlatform;
 
-/// Development [FirebaseOptions] for use with your Firebase apps.
-class DefaultFirebaseOptions {
+/// Production [FirebaseOptions] for use with your Firebase apps.
+class DefaultFirebaseOptionsProd {
   static FirebaseOptions get currentPlatform {
     if (kIsWeb) {
       return web;
@@ -38,28 +38,28 @@ class DefaultFirebaseOptions {
   }
 
   static const FirebaseOptions web = FirebaseOptions(
-    apiKey: 'AIzaSyACZKiuR76DMtQj7FxGvdZF0mc9t_h0Tis',
-    appId: '1:924105642469:web:5a88aa89910079bacc9f0c',
-    messagingSenderId: '924105642469',
-    projectId: 'allergy-ident-dev',
-    authDomain: 'allergy-ident-dev.firebaseapp.com',
-    storageBucket: 'allergy-ident-dev.firebasestorage.app',
+    apiKey: 'AIzaSyA5wCLBCEUPJKaw3lfUTEBPmAdkFhPlSyg',
+    appId: '1:428730730000:web:78719cff10d4f913d9ac95',
+    messagingSenderId: '428730730000',
+    projectId: 'allergy-ident-prod',
+    authDomain: 'allergy-ident-prod.firebaseapp.com',
+    storageBucket: 'allergy-ident-prod.firebasestorage.app',
   );
 
   static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'AIzaSyB1BjWNgiXYMsyNIvbhZv0lWX6Iqr_yHaw',
-    appId: '1:924105642469:android:91398bd22a357f8ccc9f0c',
-    messagingSenderId: '924105642469',
-    projectId: 'allergy-ident-dev',
-    storageBucket: 'allergy-ident-dev.firebasestorage.app',
+    apiKey: 'AIzaSyAMj40iZdaq9BftfWtmWs-lXsp8T_ALXXs',
+    appId: '1:428730730000:android:3d2827af37e3fdb1d9ac95',
+    messagingSenderId: '428730730000',
+    projectId: 'allergy-ident-prod',
+    storageBucket: 'allergy-ident-prod.firebasestorage.app',
   );
 
   static const FirebaseOptions ios = FirebaseOptions(
-    apiKey: 'AIzaSyAXMmreMezfENopxbSOOa-izL_-6F14wuY',
-    appId: '1:924105642469:ios:94647ae2471054b3cc9f0c',
-    messagingSenderId: '924105642469',
-    projectId: 'allergy-ident-dev',
-    storageBucket: 'allergy-ident-dev.firebasestorage.app',
+    apiKey: 'AIzaSyAcW7CpWVc5OX1wMIid38T879RJESVAXxQ',
+    appId: '1:428730730000:ios:4b5afbe7140113afd9ac95',
+    messagingSenderId: '428730730000',
+    projectId: 'allergy-ident-prod',
+    storageBucket: 'allergy-ident-prod.firebasestorage.app',
     iosBundleId: 'com.example.flutterAllergyIdentifier',
   );
 }

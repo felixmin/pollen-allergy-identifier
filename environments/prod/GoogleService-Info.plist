@@ -3,17 +3,17 @@
 <plist version="1.0">
 <dict>
 	<key>API_KEY</key>
-	<string>AIzaSyAXMmreMezfENopxbSOOa-izL_-6F14wuY</string>
+	<string>AIzaSyAcW7CpWVc5OX1wMIid38T879RJESVAXxQ</string>
 	<key>GCM_SENDER_ID</key>
-	<string>924105642469</string>
+	<string>428730730000</string>
 	<key>PLIST_VERSION</key>
 	<string>1</string>
 	<key>BUNDLE_ID</key>
 	<string>com.example.flutterAllergyIdentifier</string>
 	<key>PROJECT_ID</key>
-	<string>allergy-ident-dev</string>
+	<string>allergy-ident-prod</string>
 	<key>STORAGE_BUCKET</key>
-	<string>allergy-ident-dev.firebasestorage.app</string>
+	<string>allergy-ident-prod.firebasestorage.app</string>
 	<key>IS_ADS_ENABLED</key>
 	<false></false>
 	<key>IS_ANALYTICS_ENABLED</key>
@@ -25,6 +25,6 @@
 	<key>IS_SIGNIN_ENABLED</key>
 	<true></true>
 	<key>GOOGLE_APP_ID</key>
-	<string>1:924105642469:ios:94647ae2471054b3cc9f0c</string>
+	<string>1:428730730000:ios:4b5afbe7140113afd9ac95</string>
 </dict>
-</plist> 
+</plist>
