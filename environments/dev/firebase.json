@@ -75,9 +75,6 @@
                     }
                 ]
             }
-        ],
-        "predeploy": [
-            "flutter build web --release -t lib/main_dev.dart"
         ]
     },
     "emulators": {
