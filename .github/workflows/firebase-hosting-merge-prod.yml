@@ -39,9 +39,6 @@ jobs:
       - name: Install Firebase CLI
         run: npm install -g firebase-tools
 
-      - name: Switch to Production Environment
-        run: firebase use allergy-ident-prod
-
       - name: Deploy to Firebase (Hosting & Functions)
         env:
           GOOGLE_APPLICATION_CREDENTIALS: firebase-service-account.json
