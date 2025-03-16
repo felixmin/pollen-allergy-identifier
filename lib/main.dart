@@ -2,6 +2,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter_allergy_identifier/config/environment.dart';
 import 'package:flutter_allergy_identifier/firebase_options.dart';
 import 'package:flutter_allergy_identifier/routes.dart';
 import 'package:flutter_allergy_identifier/screens/home_screen.dart';
@@ -16,7 +17,7 @@ import 'package:flutter_allergy_identifier/services/settings_service.dart';
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   // If you're going to use other Firebase services in the background, such as Firestore,
   // make sure you call `initializeApp` before using other Firebase services.
-  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  await Firebase.initializeApp(options: EnvironmentConfig.firebaseOptions);
 
   print("Handling a background message: ${message.messageId}");
   // You can process the message data here if needed
@@ -25,8 +26,8 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Initialize Firebase with the default options
-  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  // Initialize Firebase with environment-specific options
+  await Firebase.initializeApp(options: EnvironmentConfig.firebaseOptions);
 
   // Configure Firebase Auth persistence to reduce sign-out issues
   await FirebaseAuth.instance.setPersistence(Persistence.LOCAL);
@@ -101,7 +102,7 @@ class _MyAppState extends State<MyApp> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Allergy Identifier',
+      title: EnvironmentConfig.getAppName('Allergy Identifier'),
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,

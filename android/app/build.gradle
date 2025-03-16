@@ -1,0 +1,26 @@
+android {
+    // ... existing android config ...
+    
+    // Add flavors for development and production environments
+    flavorDimensions "environment"
+    productFlavors {
+        dev {
+            dimension "environment"
+            applicationIdSuffix ".dev"
+            resValue "string", "app_name", "Allergy ID Dev"
+            // Use the dev specific google-services.json
+            manifestPlaceholders = [
+                appName: "Allergy ID Dev"
+            ]
+        }
+        prod {
+            dimension "environment"
+            resValue "string", "app_name", "Allergy Identifier"
+            manifestPlaceholders = [
+                appName: "Allergy Identifier"
+            ]
+        }
+    }
+    
+    // ... rest of android config ...
+} 

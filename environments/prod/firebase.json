@@ -23,26 +23,26 @@
         "platforms": {
             "android": {
                 "default": {
-                    "projectId": "allergy-ident-dev",
-                    "appId": "1:924105642469:android:91398bd22a357f8ccc9f0c",
+                    "projectId": "allergy-ident-prod",
+                    "appId": "1:428730730000:android:3d2827af37e3fdb1d9ac95",
                     "fileOutput": "android/app/google-services.json"
                 }
             },
             "ios": {
                 "default": {
-                    "projectId": "allergy-ident-dev",
-                    "appId": "1:924105642469:ios:94647ae2471054b3cc9f0c",
+                    "projectId": "allergy-ident-prod",
+                    "appId": "1:428730730000:ios:4b5afbe7140113afd9ac95",
                     "uploadDebugSymbols": false,
                     "fileOutput": "ios/Runner/GoogleService-Info.plist"
                 }
             },
             "dart": {
                 "lib/firebase_options.dart": {
-                    "projectId": "allergy-ident-dev",
+                    "projectId": "allergy-ident-prod",
                     "configurations": {
-                        "android": "1:924105642469:android:91398bd22a357f8ccc9f0c",
-                        "ios": "1:924105642469:ios:94647ae2471054b3cc9f0c",
-                        "web": "1:924105642469:web:5a88aa89910079bacc9f0c"
+                        "android": "1:428730730000:android:3d2827af37e3fdb1d9ac95",
+                        "ios": "1:428730730000:ios:4b5afbe7140113afd9ac95",
+                        "web": "1:428730730000:web:78719cff10d4f913d9ac95"
                     }
                 }
             }
@@ -77,7 +77,7 @@
             }
         ],
         "predeploy": [
-            "flutter build web --release -t lib/main_dev.dart"
+            "flutter build web --release -t lib/main_prod.dart"
         ]
     },
     "emulators": {
